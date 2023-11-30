@@ -1,41 +1,111 @@
+const btn = document.querySelectorAll('.btn');
+const winLose = document.querySelector('.win-lose');
+
+
+
+
+
+
+
+
+function btnUse(player,cpu,game)
+{
+    const games = startGame();
+    const btnReset = document.querySelector('.reset');
+
+
+    btnReset.addEventListener('click',() => games.resetGame());
+
+    for(i=0;i < btn.length; i++)
+    {
+        
+        btn[i].addEventListener('click',(e)=> { 
+            games.gaming(e.target.value)
+        });
+
+    }
+}
+
+btnUse();
+
+
+
+
 function startGame()
 {
     const game = gameMap();
     const cpu = cpuPlay();
     const player = playerPlay();
 
-    do{
+    const gaming = function gaming(val)
+    {
+      
+        game.gameMap[game.gameMap.indexOf(player.choice(cpu.cpuPlayed,val))] = 'X';
+        if(winCondition(player.playerPlayed,cpu.cpuPlayed) == true)
+        {
+            return;
+        }
 
-    game.gameMap[game.gameMap.indexOf(player.choice(cpu.cpuPlayed))] = 'X';
-    console.log('Player ' + player.playerPlayed);
-    game.gameMap[game.gameMap.indexOf(cpu.choice(player.playerPlayed))] = 'O';
-    console.log('CPU ' + cpu.cpuPlayed);
-    console.log(game.gameMap[0],game.gameMap[1],game.gameMap[2]);
-    console.log(game.gameMap[3],game.gameMap[4],game.gameMap[5]);
-    console.log(game.gameMap[6],game.gameMap[7],game.gameMap[8]);
-    console.log('-------');
+        game.gameMap[game.gameMap.indexOf(cpu.choice(player.playerPlayed))] = 'O';
+        if(winCondition(player.playerPlayed,cpu.cpuPlayed) == true)
+        {
+            return;
+        }
+  
+        
+    }
 
-    }while(winCondition(player.playerPlayed,cpu.cpuPlayed) == false)
+    const resetGame = function resetGame()
+    {
+        player.playerPlayed.length = 0;
+        cpu.cpuPlayed.length = 0;
+        game.gameMap = [
+            1,2,3,
+            4,5,6,
+            7,8,9
+        ]; 
+        for (const key in btn) {
+            
+            btn[key].textContent = '';
+            btn[key].disabled = false;
+            
+        }
+
+        winLose.textContent = '';
+
+        console.log(player.playerPlayed);
+        console.log(cpu.cpuPlayed);
+        console.log(game.gameMap);
+        
+;
+
+    }
+
+        return{gaming,resetGame};
 
     
 }
 
-function verifyChoice(choice,array,secArray)
+
+function verifyChoice(choice,array,secArray,mark)
 {
-    var validity;
+
+  
     if(array.includes(choice) || secArray.includes(choice))
         {
-            console.log('Ja existe');
-            return validity = false;
+
+            console.log('O Número' + choice +'Ja existe');
+            console.log(array);
+            return  false;
         }
         else{
+
+            btn[choice-1].textContent = mark;
+            btn[choice-1].disabled = true;
             array.push(choice);
-            return validity = true;
+            return  true;
         }
-
-
 }
-
 
 
 function winCondition(player, cpu)
@@ -45,20 +115,38 @@ function winCondition(player, cpu)
         multiplesInArray(player,[2,5,8]) || multiplesInArray(player,[3,6,9]) ||
         multiplesInArray(player,[1,5,9]) || multiplesInArray(player,[3,5,7]) )
         {
-            console.log('You Won');
+            for (const key in btn) {
+                btn[key].disabled = true;
+            }
+            winLose.textContent = 'You Won, Congratulations';
+            winLose.removeAttribute('hidden');
             return true;
     }else if (multiplesInArray(cpu,[1,2,3])  || multiplesInArray(cpu,[4,5,6])||
             multiplesInArray(cpu,[7,8,9]) || multiplesInArray(cpu,[1,4,7]) ||
             multiplesInArray(cpu,[2,5,8]) || multiplesInArray(cpu,[3,6,9]) ||
             multiplesInArray(cpu,[1,5,9]) || multiplesInArray(cpu,[3,5,7]) )
-        {
-            console.log('CPU Won');
+    {
+            for (const key in btn) {
+                btn[key].disabled = true;
+            }
+            winLose.textContent = 'You Lose, Try Next Time';
+            winLose.removeAttribute('hidden');
             return true;
-        }
-        else
-        {
-            return false;
-        }
+    }else if (player.length == 5)
+    {
+
+        winLose.textContent = 'It is a TIE, TRY AGAIN';
+        winLose.removeAttribute('hidden');
+        return true
+    }
+        
+    else
+    {
+        
+        return false;
+    }
+           
+    
        
     /*
     Win Conditions
@@ -67,7 +155,7 @@ function winCondition(player, cpu)
     [* * *]    [X * *]    [* * X]   [* X *]   [* * *]   [X X X]   [* * X]  [X * *]  [7 8 9] 
     
     */
-}
+    }
 
 
 function gameMap()
@@ -77,6 +165,8 @@ function gameMap()
         4,5,6,
         7,8,9
     ]; 
+
+
     
     return {gameMap}
 }
@@ -84,13 +174,13 @@ function gameMap()
 
 function cpuPlay()
 {
+    const cpuMark = 'O';
     const cpuPlayed = [];
     const choice = function choice(playerChoice)
     {
         do{
             var cpuChoice = Math.floor(Math.random()*9+1)
-            console.log(cpuChoice);
-            var valid = verifyChoice(cpuChoice,cpuPlayed,playerChoice)  
+            var valid = verifyChoice(cpuChoice,cpuPlayed,playerChoice,cpuMark)  
         }while(valid == false)
         return cpuChoice;
     }
@@ -99,16 +189,13 @@ function cpuPlay()
 }
 function playerPlay()
 {
-
-    let playerPlayed = [];
-    const choice = function choice(cpuArray)
+    const playerMark = 'X';
+    const playerPlayed = [];
+    const choice = function choice(cpuArray,playerChoice)
     {
-        do{
-            var playerChoice =  parseInt(prompt('Jogo'));
-            var valid = verifyChoice(playerChoice,playerPlayed,cpuArray);
-        }while(valid == false)
-        
-        return playerChoice;
+        let pChoice = parseFloat(playerChoice);
+        verifyChoice(pChoice,playerPlayed,cpuArray,playerMark);
+        return pChoice;
     }
 
     return {playerPlayed,choice};
@@ -116,10 +203,10 @@ function playerPlay()
 }
 function multiplesInArray(array,values)
 {
-    return values.every(value => {
-        return array.includes(value);
+    return values.every(val => {
+        return array.includes(val);
      })
 
 }
 
-startGame();
+
